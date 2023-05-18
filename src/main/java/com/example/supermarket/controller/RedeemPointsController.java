@@ -15,15 +15,15 @@ public class RedeemPointsController {
         this.userService = userService;
     }
 
-    @PostMapping("/{userId}/discount")
-    public ResponseEntity<String> redeemPointsForDiscount(@PathVariable(name = "userId") Long userId, @RequestBody RedeemRequest redeemRequest) {
-        userService.redeemPointsForDiscount(userId, redeemRequest.getPointsToRedeem());
+    @PostMapping("/{userId}/discount/{cashierId}")
+    public ResponseEntity<String> redeemPointsForDiscount(@PathVariable(name = "userId") Long userId, @RequestBody RedeemRequest redeemRequest,@PathVariable(name = "cashierId") Long cashierId) {
+        userService.redeemPointsForDiscount(userId, redeemRequest.getPointsToRedeem(),cashierId);
         return ResponseEntity.ok("Points redeemed for a discount successfully.");
     }
 
-    @PostMapping("/{userId}/water")
-    public ResponseEntity<String> redeemPointsForWater(@PathVariable(name = "userId") Long userId, @RequestBody RedeemRequest redeemRequest) {
-        userService.redeemPointsForWater(userId, redeemRequest.getPointsToRedeem());
+    @PostMapping("/{userId}/water/{cashierId}")
+    public ResponseEntity<String> redeemPointsForWater(@PathVariable(name = "userId") Long userId, @RequestBody RedeemRequest redeemRequest,@PathVariable(name = "cashierId") Long cashierId) {
+        userService.redeemPointsForWater(userId, redeemRequest.getPointsToRedeem(),cashierId);
         return ResponseEntity.ok("Points redeemed for a free water packet successfully.");
     }
 }

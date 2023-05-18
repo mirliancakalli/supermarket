@@ -15,9 +15,9 @@ public class PurchaseController {
         this.purchasePointsService = purchasePointsService;
     }
 
-    @PostMapping("/{userId}/purchase-point")
-    public ResponseEntity<Void> addPurchasePoints(@PathVariable Long userId, @RequestBody PurchasePointsRequest request){
-        purchasePointsService.addPurchasePoints(userId, request.getAmountSpent());
+    @PostMapping("/{userId}/purchase-point/{cashierId}")
+    public ResponseEntity<Void> addPurchasePoints(@PathVariable(name = "userId") Long userId,@PathVariable(name = "cashierId") Long cashierId, @RequestBody PurchasePointsRequest request){
+        purchasePointsService.addPurchasePoints(userId, request.getAmountSpent(),cashierId);
         return ResponseEntity.ok().build();
     }
 }

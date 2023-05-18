@@ -16,6 +16,12 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(error.getStatusCode()).body(error);
     }
 
+    @ExceptionHandler(CashierNotFoundException.class)
+    public ResponseEntity<?> cashierNotFound(CashierNotFoundException ex) {
+        var error = new ErrorResponse(ex.getMessage(), HttpStatus.INTERNAL_SERVER_ERROR.value(),null);
+        return ResponseEntity.status(error.getStatusCode()).body(error);
+    }
+
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<Object> handleUserNotFoundException() {
         String errorMessage = "Provided value not found!";

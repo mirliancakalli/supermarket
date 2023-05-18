@@ -6,6 +6,8 @@ import com.example.supermarket.dto.UserDTO;
 import com.example.supermarket.entity.Purchase;
 import com.example.supermarket.entity.User;
 import com.example.supermarket.exception.UserNotFoundException;
+import com.example.supermarket.exception.CashierNotFoundException;
+import com.example.supermarket.repo.CashierRepository;
 import com.example.supermarket.repo.PurchaseRepository;
 import com.example.supermarket.repo.UserAccountRepository;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,12 @@ public class UserAccountService {
 
     private final UserAccountRepository userAccountRepository;
     private final PurchaseRepository purchaseRepository;
+    private final CashierRepository cashierRepository;
 
-    public UserAccountService(UserAccountRepository userAccountRepository,PurchaseRepository purchaseRepository) {
+    public UserAccountService(UserAccountRepository userAccountRepository,PurchaseRepository purchaseRepository,CashierRepository cashierRepository) {
         this.userAccountRepository = userAccountRepository;
         this.purchaseRepository = purchaseRepository;
+        this.cashierRepository = cashierRepository;
     }
 
     public User createAccount(UserDTO userDTO) {
@@ -37,7 +41,12 @@ public class UserAccountService {
         };
     }
 
-    public void redeemPointsForDiscount(Long userId, int pointsToRedeem) {
+    public void redeemPointsForDiscount(Long userId, int pointsToRedeem,Long cashierId) {
+
+        if (!cashierRepository.existsById(cashierId)) {
+            throw new CashierNotFoundException("Invalid cashier ID");
+        }
+
         User user = userAccountRepository.findByCardId(userId);
 
         int purchasePoints = user.getPurchasePoints();
@@ -60,8 +69,6 @@ public class UserAccountService {
             } else {
                 throw new IllegalStateException("No previous purchase found for the user");
             }
-
-            // Deduct the redeemed points from the user's balance
             user.setPurchasePoints(purchasePoints - pointsToRedeem);
             userAccountRepository.save(user);
         } else {
@@ -69,7 +76,13 @@ public class UserAccountService {
         }
     }
 
-    public void redeemPointsForWater(Long userId, int pointsToRedeem) {
+    public void redeemPointsForWater(Long userId, int pointsToRedeem,Long cashierId) {
+
+        if (!cashierRepository.existsById(cashierId)) {
+            throw new CashierNotFoundException("Invalid cashier ID");
+        }
+
+
         User user = userAccountRepository.findByCardId(userId);
         int purchasePoints = user.getPurchasePoints();
         // Check if the user has enough points to redeem
