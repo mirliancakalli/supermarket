@@ -1,7 +1,6 @@
 package com.example.supermarket.service;
 
 import com.example.supermarket.entity.User;
-import com.example.supermarket.exception.UserNotFoundException;
 import com.example.supermarket.repo.UserAccountRepository;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +16,7 @@ public class PurchasePointsService {
     }
 
     public void addPurchasePoints(Long userId, BigDecimal amountSpent) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found with ID: " + userId));
+        User user = userRepository.findByCardId(userId);
 
         int purchasePoints = calculatePurchasePoints(amountSpent);
         user.addPurchasePoints(purchasePoints);

@@ -1,5 +1,6 @@
 package com.example.supermarket.entity;
 
+import com.example.supermarket.dto.RewardType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;

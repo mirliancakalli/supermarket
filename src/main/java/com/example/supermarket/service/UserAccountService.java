@@ -9,7 +9,6 @@ import com.example.supermarket.exception.UserNotFoundException;
 import com.example.supermarket.repo.PurchaseRepository;
 import com.example.supermarket.repo.UserAccountRepository;
 import org.springframework.stereotype.Service;
-
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,8 +38,7 @@ public class UserAccountService {
     }
 
     public void redeemPointsForDiscount(Long userId, int pointsToRedeem) {
-        User user = userAccountRepository.findById(userId)
-                .orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userAccountRepository.findByCardId(userId);
 
         int purchasePoints = user.getPurchasePoints();
 
@@ -72,7 +70,7 @@ public class UserAccountService {
     }
 
     public void redeemPointsForWater(Long userId, int pointsToRedeem) {
-        User user = userAccountRepository.findById(userId).orElseThrow(() -> new UserNotFoundException("User not found"));
+        User user = userAccountRepository.findByCardId(userId);
         int purchasePoints = user.getPurchasePoints();
         // Check if the user has enough points to redeem
         if (purchasePoints >= pointsToRedeem) {
