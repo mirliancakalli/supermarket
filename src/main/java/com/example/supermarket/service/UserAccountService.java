@@ -1,19 +1,25 @@
 package com.example.supermarket.service;
 
+import com.example.supermarket.dto.RewardType;
 import com.example.supermarket.dto.SelectionEnum;
 import com.example.supermarket.dto.UserBalanceDTO;
 import com.example.supermarket.dto.UserDTO;
+import com.example.supermarket.entity.Cashier;
 import com.example.supermarket.entity.Purchase;
+import com.example.supermarket.entity.RedeemedRewards;
 import com.example.supermarket.entity.User;
 import com.example.supermarket.exception.UserNotFoundException;
 import com.example.supermarket.exception.CashierNotFoundException;
 import com.example.supermarket.repo.CashierRepository;
 import com.example.supermarket.repo.PurchaseRepository;
+import com.example.supermarket.repo.RedeemedRewardsRepository;
 import com.example.supermarket.repo.UserAccountRepository;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class UserAccountService {
@@ -21,11 +27,16 @@ public class UserAccountService {
     private final UserAccountRepository userAccountRepository;
     private final PurchaseRepository purchaseRepository;
     private final CashierRepository cashierRepository;
+    private final RedeemedRewardsRepository redeemedRewardsRepository;
 
-    public UserAccountService(UserAccountRepository userAccountRepository,PurchaseRepository purchaseRepository,CashierRepository cashierRepository) {
+    public UserAccountService(UserAccountRepository userAccountRepository,
+                              PurchaseRepository purchaseRepository,
+                              CashierRepository cashierRepository,
+                              RedeemedRewardsRepository redeemedRewardsRepository) {
         this.userAccountRepository = userAccountRepository;
         this.purchaseRepository = purchaseRepository;
         this.cashierRepository = cashierRepository;
+        this.redeemedRewardsRepository = redeemedRewardsRepository;
     }
 
     public User createAccount(UserDTO userDTO) {
@@ -42,8 +53,9 @@ public class UserAccountService {
     }
 
     public void redeemPointsForDiscount(Long userId, int pointsToRedeem,Long cashierId) {
+        Optional<Cashier> cashier = cashierRepository.findById(cashierId);
 
-        if (!cashierRepository.existsById(cashierId)) {
+        if (cashier.isEmpty()) {
             throw new CashierNotFoundException("Invalid cashier ID");
         }
 
@@ -66,6 +78,18 @@ public class UserAccountService {
                 BigDecimal discountedAmount = lastPurchaseAmount.subtract(discount);
                 lastPurchase.setAmount(discountedAmount);
                 purchaseRepository.save(lastPurchase);
+
+
+                RedeemedRewards redeemedRewards = new RedeemedRewards();
+                redeemedRewards.setUser(user);
+                redeemedRewards.setPointsRedeemed(pointsToRedeem);
+                redeemedRewards.setRewardType(RewardType.DISCOUNT); // Assuming the reward type for discount is defined as DISCOUNT in the RewardType enum
+                redeemedRewards.setCashier(cashier.orElseThrow());
+                redeemedRewards.setRedemptionDate(LocalDateTime.now());
+
+                // Save the redeemed rewards' entity to the database
+                redeemedRewardsRepository.save(redeemedRewards);
+
             } else {
                 throw new IllegalStateException("No previous purchase found for the user");
             }
@@ -81,7 +105,6 @@ public class UserAccountService {
         if (!cashierRepository.existsById(cashierId)) {
             throw new CashierNotFoundException("Invalid cashier ID");
         }
-
 
         User user = userAccountRepository.findByCardId(userId);
         int purchasePoints = user.getPurchasePoints();
