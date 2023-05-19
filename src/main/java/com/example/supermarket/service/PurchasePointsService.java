@@ -1,6 +1,7 @@
 package com.example.supermarket.service;
 
 import com.example.supermarket.dto.PurchasePointsRequest;
+import com.example.supermarket.dto.PurchaseResponseDTO;
 import com.example.supermarket.dto.RewardType;
 import com.example.supermarket.dto.SelectionEnum;
 import com.example.supermarket.entity.Cashier;
@@ -22,7 +23,6 @@ public class PurchasePointsService {
     private final static String OPTION_FREE_PACKET_WATER ="freePacketWater";
     private final static String TOTAL ="total";
 
-
     private final UserAccountService userService;
     private final CashierService cashierService;
     private final PurchaseRepository purchaseRepository;
@@ -39,12 +39,14 @@ public class PurchasePointsService {
     }
 
     @SneakyThrows
-    public void addPurchase(SelectionEnum userData, String userid, PurchasePointsRequest request, Long cashierId) {
-
+    public PurchaseResponseDTO addPurchase(SelectionEnum userData, String userid, PurchasePointsRequest request, Long cashierId) {
+        var response = new PurchaseResponseDTO();
         //validate cashier
         var cashier = cashierService.findById(cashierId);
         //validate user
         var user = userService.getUserAccount(userData, userid);
+
+        var hasRedeems = false;
 
         if (request.getRewardType().equals(RewardType.FREE_WATER_PACKET)
                 || request.getRewardType().equals(RewardType.DISCOUNT)) {
@@ -55,19 +57,32 @@ public class PurchasePointsService {
 
             if (request.getRewardType().equals(RewardType.FREE_WATER_PACKET) && freeWaterPacket.compareTo(BigDecimal.ZERO) == 0){
                 throw new Exception("Requested free packet of water but you don't have enough purchase point");
-            }else {
+            }else  if (request.getRewardType().equals(RewardType.FREE_WATER_PACKET)){
                 int remainingPurchasePoint = (existingPurchasePoints - (freeWaterPacket.intValue()*150));
                 user.setPurchasePoints(remainingPurchasePoint);
                 redeemPointsService.createRedeemPoints(RewardType.FREE_WATER_PACKET,freeWaterPacket.intValue()*150,cashier,user);
+
+                response.setUsedPurchasePoints(freeWaterPacket.intValue()*150);
+                response.setRedeemedRewardUsed("Free packet water");
+                response.setTotalPayed(request.getTotalAmountDue().intValue());
+                response.setRemainedPurchasePoints(remainingPurchasePoint);
+                response.setFreePacketWater(freeWaterPacket.intValue());
             }
 
             if (request.getRewardType().equals(RewardType.DISCOUNT) && discountAmount.compareTo(BigDecimal.ZERO) == 0){
                 throw new Exception("Requested discount but you don't have enough purchase point");
-            }else {
+            }else  if (request.getRewardType().equals(RewardType.DISCOUNT)){
                 int remainingPurchasePoint = (existingPurchasePoints - (discountAmount.intValue()*100));
                 user.setPurchasePoints(remainingPurchasePoint);
                 redeemPointsService.createRedeemPoints(RewardType.DISCOUNT,discountAmount.intValue()*100,cashier,user);
+
+                response.setUsedPurchasePoints(discountAmount.intValue()*100);
+                response.setRedeemedRewardUsed("Discount");
+                response.setTotalPayed(request.getTotalAmountDue().intValue());
+                response.setRemainedPurchasePoints(remainingPurchasePoint);
+                response.setDiscount(discountAmount.intValue());
             }
+            hasRedeems = true;
         }
 
         //calculate purchase points for the new order and add them to the remaining one
@@ -77,6 +92,13 @@ public class PurchasePointsService {
 
         //if everything ok, create new purchase
         createPurchase(user,cashier,request.getTotalAmountDue());
+
+        if (!hasRedeems){
+            response.setRedeemedRewardUsed("None");
+            response.setTotalPayed(request.getTotalAmountDue().intValue());
+            response.setRemainedPurchasePoints(user.getPurchasePoints());
+        }
+        return response;
     }
 
     private void createPurchase(User user, Cashier cashier, BigDecimal totalAmountDue) {

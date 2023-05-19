@@ -33,7 +33,7 @@ public class RedeemPointsService {
         redeemedRewardsRepository.save(redeemReward);
     }
 
-    public void redeemPointsForWater(SelectionEnum userData , String userId, int pointsToRedeem, Long cashierId) throws Exception {
+    public int redeemPointsForWater(SelectionEnum userData , String userId, int pointsToRedeem, Long cashierId) throws Exception {
         //validate cashier
         var cashier = cashierService.findById(cashierId);
         //validate user
@@ -41,18 +41,17 @@ public class RedeemPointsService {
 
         int purchasePoints = user.getPurchasePoints();
 
-        // Check if the user has enough points to redeem
         if (purchasePoints >= pointsToRedeem) {
-            // Calculate the discount amount based on the points to redeem
-            int discountAmount = pointsToRedeem / 150; // 1 euro discount for every 100 points
-
-            if (discountAmount==0){
-                throw new Exception("Requested discount but you don't have enough purchase point");
+            int freePacketWater = purchasePoints / 150;
+            if (freePacketWater==0){
+                throw new Exception("Requested discount but you don't have enough purchase point. Purchase points available: "+purchasePoints+". Minimum required 150");
             }
 
-            createRedeemPoints(RewardType.FREE_WATER_PACKET,discountAmount*150,cashier,user);
-            user.setPurchasePoints(purchasePoints-discountAmount*150);
+            createRedeemPoints(RewardType.FREE_WATER_PACKET,freePacketWater*150,cashier,user);
+            user.setPurchasePoints(purchasePoints-freePacketWater*150);
             userService.save(user);
+
+            return freePacketWater;
         } else {
             throw new IllegalArgumentException("Invalid points to redeem or insufficient purchase points");
         }

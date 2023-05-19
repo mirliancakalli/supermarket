@@ -1,6 +1,7 @@
 package com.example.supermarket.controller;
 
 import com.example.supermarket.dto.PurchasePointsRequest;
+import com.example.supermarket.dto.PurchaseResponseDTO;
 import com.example.supermarket.dto.SelectionEnum;
 import com.example.supermarket.service.PurchasePointsService;
 import org.springframework.http.HttpStatus;
@@ -19,12 +20,12 @@ public class PurchaseController {
     }
 
     @PostMapping("/{user}/{cashierId}")
-    public ResponseEntity<Void> addPurchase(@RequestParam SelectionEnum userData,
+    public ResponseEntity<?> addPurchase(@RequestParam SelectionEnum userData,
                                             @PathVariable(name = "user") String value,
                                             @PathVariable(name = "cashierId") Long cashierId,
                                             @RequestBody PurchasePointsRequest request) {
-        purchasePointsService.addPurchase(userData,value, request, cashierId);
-        return ResponseEntity.ok().build();
+        var response = purchasePointsService.addPurchase(userData, value, request, cashierId);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PostMapping("/calculate/{user}/{cashierId}")
