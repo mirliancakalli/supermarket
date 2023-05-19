@@ -6,6 +6,6 @@ import java.math.BigDecimal;
 
 @Data
 public class PurchasePointsRequest {
-    private BigDecimal amountSpent;
+    private BigDecimal totalAmountDue;
     private RewardType rewardType;
 }

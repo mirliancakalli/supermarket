@@ -1,7 +1,8 @@
 package com.example.supermarket.controller;
 
 import com.example.supermarket.dto.RedeemRequest;
-import com.example.supermarket.service.UserAccountService;
+import com.example.supermarket.dto.SelectionEnum;
+import com.example.supermarket.service.RedeemPointsService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -9,21 +10,18 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(path = "/redeem-points")
 public class RedeemPointsController {
 
-    private final UserAccountService userService;
+    private final RedeemPointsService redeemPointsService;
 
-    public RedeemPointsController(UserAccountService userService) {
-        this.userService = userService;
+    public RedeemPointsController(RedeemPointsService redeemPointsService) {
+        this.redeemPointsService = redeemPointsService;
     }
 
-    @PostMapping("/{userId}/discount/{cashierId}")
-    public ResponseEntity<String> redeemPointsForDiscount(@PathVariable(name = "userId") Long userId, @RequestBody RedeemRequest redeemRequest,@PathVariable(name = "cashierId") Long cashierId) {
-        userService.redeemPointsForDiscount(userId, redeemRequest.getPointsToRedeem(),cashierId);
-        return ResponseEntity.ok("Points redeemed for a discount successfully.");
-    }
-
-    @PostMapping("/{userId}/water/{cashierId}")
-    public ResponseEntity<String> redeemPointsForWater(@PathVariable(name = "userId") Long userId, @RequestBody RedeemRequest redeemRequest,@PathVariable(name = "cashierId") Long cashierId) {
-        userService.redeemPointsForWater(userId, redeemRequest.getPointsToRedeem(),cashierId);
+    @PostMapping("/{user}/water/{cashierId}")
+    public ResponseEntity<String> redeemPointsForWater(  @RequestParam SelectionEnum userData,
+                                                         @PathVariable(name = "user") String value,
+                                                         @RequestBody RedeemRequest redeemRequest,
+                                                         @PathVariable(name = "cashierId") Long cashierId) throws Exception {
+        redeemPointsService.redeemPointsForWater(userData,value, redeemRequest.getPointsToRedeem(),cashierId);
         return ResponseEntity.ok("Points redeemed for a free water packet successfully.");
     }
 }

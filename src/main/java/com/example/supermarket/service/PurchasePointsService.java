@@ -1,11 +1,12 @@
 package com.example.supermarket.service;
 
 import com.example.supermarket.dto.PurchasePointsRequest;
+import com.example.supermarket.dto.RewardType;
+import com.example.supermarket.dto.SelectionEnum;
 import com.example.supermarket.entity.Cashier;
 import com.example.supermarket.entity.Purchase;
-import com.example.supermarket.repo.CashierRepository;
+import com.example.supermarket.entity.User;
 import com.example.supermarket.repo.PurchaseRepository;
-import com.example.supermarket.repo.UserAccountRepository;
 import lombok.SneakyThrows;
 import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
@@ -13,7 +14,6 @@ import java.math.RoundingMode;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 @Service
 public class PurchasePointsService {
@@ -23,35 +23,68 @@ public class PurchasePointsService {
     private final static String TOTAL ="total";
 
 
-    private final UserAccountRepository userRepository;
-    private final CashierRepository cashierRepository;
+    private final UserAccountService userService;
+    private final CashierService cashierService;
     private final PurchaseRepository purchaseRepository;
+    private final RedeemPointsService redeemPointsService;
 
-    public PurchasePointsService(UserAccountRepository userRepository,CashierRepository cashierRepository,PurchaseRepository purchaseRepository) {
-        this.userRepository = userRepository;
-        this.cashierRepository = cashierRepository;
+    public PurchasePointsService(UserAccountService userService,
+                                 CashierService cashierService,
+                                 PurchaseRepository purchaseRepository,
+                                 RedeemPointsService redeemPointsService) {
+        this.userService = userService;
+        this.cashierService = cashierService;
         this.purchaseRepository = purchaseRepository;
+        this.redeemPointsService = redeemPointsService;
     }
 
     @SneakyThrows
-    public void addPurchase(Long userId, BigDecimal amountSpent,Long cashierId) {
+    public void addPurchase(SelectionEnum userData, String userid, PurchasePointsRequest request, Long cashierId) {
 
-        Optional<Cashier> cashier = cashierRepository.findById(cashierId);
-        if (cashier.isEmpty()) {
-            throw new Exception("Invalid cashier ID");
+        //validate cashier
+        var cashier = cashierService.findById(cashierId);
+        //validate user
+        var user = userService.getUserAccount(userData, userid);
+
+        if (request.getRewardType().equals(RewardType.FREE_WATER_PACKET)
+                || request.getRewardType().equals(RewardType.DISCOUNT)) {
+            int existingPurchasePoints = user.getPurchasePoints();
+
+            var discountAmount = BigDecimal.valueOf(existingPurchasePoints / 100);
+            var freeWaterPacket = BigDecimal.valueOf(existingPurchasePoints / 150);
+
+            if (request.getRewardType().equals(RewardType.FREE_WATER_PACKET) && freeWaterPacket.compareTo(BigDecimal.ZERO) == 0){
+                throw new Exception("Requested free packet of water but you don't have enough purchase point");
+            }else {
+                int remainingPurchasePoint = (existingPurchasePoints - (freeWaterPacket.intValue()*150));
+                user.setPurchasePoints(remainingPurchasePoint);
+                redeemPointsService.createRedeemPoints(RewardType.FREE_WATER_PACKET,freeWaterPacket.intValue()*150,cashier,user);
+            }
+
+            if (request.getRewardType().equals(RewardType.DISCOUNT) && discountAmount.compareTo(BigDecimal.ZERO) == 0){
+                throw new Exception("Requested discount but you don't have enough purchase point");
+            }else {
+                int remainingPurchasePoint = (existingPurchasePoints - (discountAmount.intValue()*100));
+                user.setPurchasePoints(remainingPurchasePoint);
+                redeemPointsService.createRedeemPoints(RewardType.DISCOUNT,discountAmount.intValue()*100,cashier,user);
+            }
         }
 
-        var user = userRepository.findByCardId(userId);
-
-        int purchasePoints = calculatePurchasePoints(amountSpent);
+        //calculate purchase points for the new order and add them to the remaining one
+        int purchasePoints = calculatePurchasePoints(request.getTotalAmountDue());
         user.addPurchasePoints(purchasePoints);
-        userRepository.save(user);
+        userService.save(user);
 
+        //if everything ok, create new purchase
+        createPurchase(user,cashier,request.getTotalAmountDue());
+    }
+
+    private void createPurchase(User user, Cashier cashier, BigDecimal totalAmountDue) {
         var purchase = new Purchase();
         purchase.setPurchaseDate(LocalDateTime.now());
         purchase.setUser(user);
-        purchase.setCashier(cashier.orElseThrow());
-        purchase.setAmount(amountSpent);
+        purchase.setCashier(cashier);
+        purchase.setAmount(totalAmountDue);
         purchaseRepository.save(purchase);
     }
 
@@ -61,28 +94,30 @@ public class PurchasePointsService {
                 .intValue();
     }
 
-    public Map<String, Object> calculatePurchase(Long userId, PurchasePointsRequest request, Long cashierId) throws Exception {
+    public Map<String, Object> calculatePurchase(SelectionEnum userData, String value, PurchasePointsRequest request, Long cashierId) throws Exception {
         var response = new HashMap<String, Object>();
-        var cashier = cashierRepository.findById(cashierId);
+        cashierService.findById(cashierId); // just to validate cashier ID
+        var user = userService.getUserAccount(userData, value);
 
-        if (cashier.isEmpty()) {
-            throw new Exception("Invalid cashier ID");
-        }
-        var user = userRepository.findByCardId(userId);
+        int purchasePoints = user.getPurchasePoints();
 
-        if (user == null){
-            throw new Exception("Invalid User ID");
-        }
-
-        int purchasePoints = calculatePurchasePoints(BigDecimal.valueOf(user.getPurchasePoints()));
         var discountAmount = BigDecimal.valueOf(purchasePoints / 100);
-        var freeWaterPacket =  BigDecimal.valueOf(purchasePoints / 150);
-        //discount in euro
-        response.put(OPTION_DISCOUNT, discountAmount);
-        //Total to pay is used free packet of water
-        response.put(OPTION_FREE_PACKET_WATER, request.getAmountSpent().subtract(discountAmount));
-        //discount in euro
-        response.put(TOTAL, freeWaterPacket);
+        var freeWaterPacket = BigDecimal.valueOf(purchasePoints / 150);
+
+        if (request.getRewardType().equals(RewardType.FREE_WATER_PACKET)) {
+            response.put(OPTION_DISCOUNT, null);
+            response.put(OPTION_FREE_PACKET_WATER, freeWaterPacket);
+            response.put(TOTAL, request.getTotalAmountDue());
+        } else if (request.getRewardType().equals(RewardType.DISCOUNT)) {
+            response.put(OPTION_DISCOUNT, discountAmount);
+            response.put(OPTION_FREE_PACKET_WATER, null);
+            response.put(TOTAL, request.getTotalAmountDue());
+        } else {
+            response.put(OPTION_DISCOUNT, null);
+            response.put(OPTION_FREE_PACKET_WATER, null);
+            response.put(TOTAL, request.getTotalAmountDue());
+        }
         return response;
     }
+
 }

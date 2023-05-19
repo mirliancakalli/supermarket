@@ -27,7 +27,7 @@ public class UserAccountController {
     }
 
     @GetMapping("/{value}")
-    public ResponseEntity<?> getUserAccount(@RequestParam SelectionEnum selection, @PathVariable(name = "value") String value) {
+    public ResponseEntity<?> getUserAccount(@RequestParam SelectionEnum selection, @PathVariable(name = "value") String value) throws Exception {
         return ResponseEntity.ok(userAccountService.getUserAccount(selection, value));
     }
 
