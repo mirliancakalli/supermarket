@@ -8,7 +8,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class PurchaseResponseDTO {
-    private int totalPayed;
+    private int toPay;
+    private int payed;
     private int discount;
     private int freePacketWater;
     private int remainedPurchasePoints;

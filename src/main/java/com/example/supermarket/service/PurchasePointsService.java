@@ -64,7 +64,10 @@ public class PurchasePointsService {
 
                 response.setUsedPurchasePoints(freeWaterPacket.intValue()*150);
                 response.setRedeemedRewardUsed("Free packet water");
-                response.setTotalPayed(request.getTotalAmountDue().intValue());
+
+                response.setPayed(request.getTotalAmountDue().intValue());
+                response.setToPay(request.getTotalAmountDue().intValue());
+
                 response.setRemainedPurchasePoints(remainingPurchasePoint);
                 response.setFreePacketWater(freeWaterPacket.intValue());
             }
@@ -78,7 +81,10 @@ public class PurchasePointsService {
 
                 response.setUsedPurchasePoints(discountAmount.intValue()*100);
                 response.setRedeemedRewardUsed("Discount");
-                response.setTotalPayed(request.getTotalAmountDue().intValue());
+
+                response.setPayed(request.getTotalAmountDue().intValue() - discountAmount.intValue());
+                response.setToPay(request.getTotalAmountDue().intValue());
+
                 response.setRemainedPurchasePoints(remainingPurchasePoint);
                 response.setDiscount(discountAmount.intValue());
             }
@@ -95,7 +101,8 @@ public class PurchasePointsService {
 
         if (!hasRedeems){
             response.setRedeemedRewardUsed("None");
-            response.setTotalPayed(request.getTotalAmountDue().intValue());
+            response.setPayed(request.getTotalAmountDue().intValue());
+            response.setToPay(request.getTotalAmountDue().intValue());
             response.setRemainedPurchasePoints(user.getPurchasePoints());
         }
         return response;
