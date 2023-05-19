@@ -79,11 +79,10 @@ public class UserAccountService {
                 lastPurchase.setAmount(discountedAmount);
                 purchaseRepository.save(lastPurchase);
 
-
                 RedeemedRewards redeemedRewards = new RedeemedRewards();
                 redeemedRewards.setUser(user);
                 redeemedRewards.setPointsRedeemed(pointsToRedeem);
-                redeemedRewards.setRewardType(RewardType.DISCOUNT); // Assuming the reward type for discount is defined as DISCOUNT in the RewardType enum
+                redeemedRewards.setRewardType(RewardType.DISCOUNT);
                 redeemedRewards.setCashier(cashier.orElseThrow());
                 redeemedRewards.setRedemptionDate(LocalDateTime.now());
 
@@ -101,8 +100,9 @@ public class UserAccountService {
     }
 
     public void redeemPointsForWater(Long userId, int pointsToRedeem,Long cashierId) {
+        Optional<Cashier> cashier = cashierRepository.findById(cashierId);
 
-        if (!cashierRepository.existsById(cashierId)) {
+        if (cashier.isEmpty()) {
             throw new CashierNotFoundException("Invalid cashier ID");
         }
 
@@ -110,18 +110,34 @@ public class UserAccountService {
         int purchasePoints = user.getPurchasePoints();
         // Check if the user has enough points to redeem
         if (purchasePoints >= pointsToRedeem) {
+
+            Purchase lastPurchase = purchaseRepository.findLastPurchaseByUserId(userId);
+
             // Calculate the number of water packets to give
             int waterPackets = pointsToRedeem / 150; // 1 packet for every 150 points
 
             user.setPurchasePoints(purchasePoints - pointsToRedeem);
             userAccountRepository.save(user);
+
+
+            RedeemedRewards redeemedRewards = new RedeemedRewards();
+            redeemedRewards.setUser(user);
+            redeemedRewards.setPointsRedeemed(pointsToRedeem);
+            redeemedRewards.setRewardType(RewardType.FREE_WATER_PACKET);
+            redeemedRewards.setCashier(cashier.orElseThrow());
+            redeemedRewards.setRedemptionDate(LocalDateTime.now());
+
+            // Save the redeemed rewards' entity to the database
+            redeemedRewardsRepository.save(redeemedRewards);
+
+
         } else {
             throw new IllegalArgumentException("Invalid points to redeem or insufficient purchase points");
         }
     }
 
     public List<UserBalanceDTO> getUnclaimedBalances() {
-        List<User> usersWithPositiveBalances = userAccountRepository.findUsersWithPositiveBalance();
+        List<User> usersWithPositiveBalances = userAccountRepository.findUsersWithPositivePurchasePoints();
 
         List<UserBalanceDTO> unclaimedBalances = new ArrayList<>();
         for (User user : usersWithPositiveBalances) {

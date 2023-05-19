@@ -11,6 +11,6 @@ public interface UserAccountRepository extends JpaRepository<User,Long> {
 
     User findByMobileNumber(String parseLong);
 
-    @Query("SELECT u FROM User u WHERE u.balance > 0")
-    List<User> findUsersWithPositiveBalance();
+    @Query("SELECT u FROM User u WHERE u.purchasePoints > 0")
+    List<User> findUsersWithPositivePurchasePoints();
 }

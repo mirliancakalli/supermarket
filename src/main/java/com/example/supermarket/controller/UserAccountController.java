@@ -26,9 +26,9 @@ public class UserAccountController {
         return new ResponseEntity<>(userAccountService.createAccount(userDTO), HttpStatus.OK);
     }
 
-    @GetMapping("/{val}")
-    public ResponseEntity<?> getUserAccount(@RequestParam SelectionEnum selection, @PathVariable(name = "val") String parameter) {
-        return ResponseEntity.ok(userAccountService.getUserAccount(selection, parameter));
+    @GetMapping("/{value}")
+    public ResponseEntity<?> getUserAccount(@RequestParam SelectionEnum selection, @PathVariable(name = "value") String value) {
+        return ResponseEntity.ok(userAccountService.getUserAccount(selection, value));
     }
 
     @GetMapping("/balance")
