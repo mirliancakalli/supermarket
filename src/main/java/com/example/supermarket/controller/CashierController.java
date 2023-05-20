@@ -2,6 +2,8 @@ package com.example.supermarket.controller;
 
 import com.example.supermarket.entity.Cashier;
 import com.example.supermarket.service.CashierService;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,12 +21,12 @@ public class CashierController {
     }
 
     @GetMapping("/{cashierId}")
-    public Cashier getCashier(@PathVariable(name = "cashierId") Long cashierId){
-        return cashierService.findOne(cashierId);
+    public ResponseEntity<?> getCashier(@PathVariable(name = "cashierId") Long cashierId){
+        return new ResponseEntity<>(cashierService.findOne(cashierId), HttpStatus.OK);
     }
 
     @GetMapping()
-    public List<Cashier> getCashiers(){
-        return cashierService.findAll();
+    public ResponseEntity<?> getCashiers(){
+        return new ResponseEntity<>(cashierService.findAll(), HttpStatus.OK);
     }
 }
