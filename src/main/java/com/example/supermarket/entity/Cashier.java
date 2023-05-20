@@ -21,4 +21,9 @@ public class Cashier {
 
     @Column(nullable = false)
     private String surname;
+
+    public Cashier(String name, String surname) {
+        this.name = name;
+        this.surname = surname;
+    }
 }
