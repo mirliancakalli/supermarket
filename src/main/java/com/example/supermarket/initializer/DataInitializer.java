@@ -22,10 +22,11 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) {
         // Pre-populate User table
-        userAccountRepository.save(createUser("User 1", "Surname 1"));
-        userAccountRepository.save(createUser("User 2", "Surname 2"));
-        userAccountRepository.save(createUser("User 3", "Surname 3"));
-
+        if(checkIfUserTableIsEmpty()) {
+            userAccountRepository.save(createUser("User 1", "Surname 1"));
+            userAccountRepository.save(createUser("User 2", "Surname 2"));
+            userAccountRepository.save(createUser("User 3", "Surname 3"));
+        }
         // Pre-populate Cashier table
 
         if(checkIfCashierTableIsEmpty()){
@@ -34,6 +35,10 @@ public class DataInitializer implements CommandLineRunner {
             cashierRepository.save(new Cashier("Cashier 3", "Surname 3"));
         }
 
+    }
+
+    private boolean checkIfUserTableIsEmpty() {
+        return userAccountRepository.findAll().size() <= 0;
     }
 
     private boolean checkIfCashierTableIsEmpty() {
