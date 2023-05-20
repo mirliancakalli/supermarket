@@ -23,17 +23,17 @@ access to it.
 
 #Implementation
 
-1-> Cashier login at the system
+1-> Cashier get 
 
-2-> Cashier check single user by scanning card - >  he has all his information there, name, surname, purchase points ect
+2-> Cashier check single user by scanning card - >  all his information there, name, surname, purchase points ect
 
-3-> Cashier check all products and gives to the user amount to pay(total), same time he also gives to the user 2 more options to use purchase points with current purchase, get discount if enough or take any free packed of water if purchase points are enough.
+3-> Cashier check-out all products and calculates amount to pay(total), same time he also provides to the user 2 more options to use purchase points with current purchase, get discount if enough or take any free packed of water if purchase points are enough.
 
 	Option 1: user buys something and leaves -> validate cashier, userid,  add purchase, calculate points and add to user
-	option 2: user buys something and uses purchase points to get discount for current bill, calculated purchase points are removed from user 
-	Option 3: user buys something and uses purchase points to get free water for current bill
+	option 2: user buys something and uses purchase points to get discount for current bill, validate cashier, userid,  add purchase  & calculated purchase points are removed from user(those used for dicount), redeemReward created
+	Option 3: user buys something and uses purchase points to get free water for current bill validate cashier, userid,  add purchase  & calculated purchase points are removed from user(those used for free packet of water) , redeemReward created
 
-To Mention when Cashier gives to the User those 2 options for using purchasePoints, purchasePoints are those of previouis purchases. The current ones are stored and not used for that bill.
+To Mention: when Cashier provides to the User benefits of using purchasePoints, purchasePoints are those of previous purchases. The current ones are stored and not used for that bill.
 
 
 APIs:
@@ -46,4 +46,4 @@ APIs:
 
 4 calculate amount to pay, by providing discount or free packets of water if requested by client/user on current bill based on existing purchase points.
 
-5 purchase amount by also including if user needed discount or free packets of water (check cashier, user, check if user needed discount(if yes apply discount and reduce amount + create RedeemedRewards and insert in db), calculate purchase point for newly purchase, create purchase and insert)
+5 Add purchase by also including if user needed discount or free packets of water (check cashier, user, check if user needed discount(if yes apply discount and reduce amount + create RedeemedRewards and insert in db), calculate purchase point for newly purchase, create purchase and insert)
