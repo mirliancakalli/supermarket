@@ -47,3 +47,7 @@ APIs:
 4 calculate amount to pay, by providing discount or free packets of water if requested by client/user on current bill based on existing purchase points.
 
 5 Add purchase by also including if user needed discount or free packets of water (check cashier, user, check if user needed discount(if yes apply discount and reduce amount + create RedeemedRewards and insert in db), calculate purchase point for newly purchase, create purchase and insert)
+
+
+#Tools
+Java 17, Spring boot 3.0.6, MySQL where tables are created on project build and User,Cashier tables are pre-valorized on runtime
