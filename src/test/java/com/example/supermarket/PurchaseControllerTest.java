@@ -100,8 +100,8 @@ class PurchasePointsServiceTest {
         SelectionEnum userData = SelectionEnum.ID;
         String userId = "1";
         PurchasePointsRequest request = new PurchasePointsRequest();
-        request.setRewardType(RewardType.DISCOUNT);  // Set the reward type here
-        request.setTotalAmountDue(BigDecimal.valueOf(100));  // Set the total amount due here
+        request.setRewardType(RewardType.DISCOUNT);
+        request.setTotalAmountDue(BigDecimal.valueOf(100));
 
         Long cashierId = 1L;
         User user = new User();
@@ -126,7 +126,7 @@ class PurchasePointsServiceTest {
         SelectionEnum userData = SelectionEnum.ID;
         String userId = "1";
         PurchasePointsRequest request = new PurchasePointsRequest();
-        request.setRewardType(RewardType.DISCOUNT);  // Set the reward type here
+        request.setRewardType(RewardType.DISCOUNT);
         request.setTotalAmountDue(BigDecimal.valueOf(100));
         Long cashierId = 1L;
         User user = new User();
